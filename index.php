@@ -1,17 +1,19 @@
 <?php
 include 'function.php';
 
-// Connect to ftp
-$ftp = ftp_connect('127.0.0.1');
-ftp_login($ftp, 'polymorphx', '');
+$files = query("SELECT * FROM tb_files");
+$totalFiles = getTotalFiles();
+$filesSize = sumSize();
+$cpuUsage = 0;
+$memoryUsage = 0;
 
-// Retrieve files and ftp others ftp command
-$files = ftp_nlist($ftp, '');
-$base_url = ftp_pwd($ftp);
-
-// Memory, cpu usage
-$cpu_usage = $startMemory = memory_get_usage();
-$memory_usage = memory_get_usage() - $startMemory . '  Bytes';
+if (isset($_POST['submit'])) {
+  if (uploadFile($_FILES) > 0) {
+    header("Location: index.php");
+  } else {
+    header("Location: index.php");
+  }
+}
 
 ?>
 <!DOCTYPE html>
@@ -46,7 +48,7 @@ $memory_usage = memory_get_usage() - $startMemory . '  Bytes';
   <meta name="description" content="Premium Quality and Responsive UI for Dashboard.">
   <meta name="author" content="ThemePixels">
 
-  <title>I-FTP - Dashboard</title>
+  <title>R-Manager - Dashboard</title>
 
   <!-- vendor css -->
   <link href="./lib/@fortawesome/fontawesome-free/css/all.min.css" rel="stylesheet">
@@ -66,7 +68,7 @@ $memory_usage = memory_get_usage() - $startMemory . '  Bytes';
 <body>
 
   <!-- ########## START: LEFT PANEL ########## -->
-  <div class="br-logo"><a href=""><span>[</span>I-<i>FTP</i><span>]</span></a></div>
+  <div class="br-logo"><a href=""><span>[</span>R-<i>MANAGER</i><span>]</span></a></div>
   <div class="br-sideleft sideleft-scrollbar">
     <label class="sidebar-label pd-x-10 mg-t-20 op-3">Navigation</label>
     <ul class="br-sideleft-menu">
@@ -145,6 +147,7 @@ $memory_usage = memory_get_usage() - $startMemory . '  Bytes';
       <div>
         <h4>Dashboard</h4>
         <p class="mg-b-0">Store and manage files online for free, try it now.</p>
+        <!-- <p class="mg-b-0"><?php echo $error; ?></p> -->
       </div>
     </div>
 
@@ -156,8 +159,8 @@ $memory_usage = memory_get_usage() - $startMemory . '  Bytes';
               <i class="ion ion-speedometer tx-60 lh-0 tx-white op-7"></i>
               <div class="mg-l-20">
                 <p class="tx-10 tx-spacing-1 tx-mont tx-semibold tx-uppercase tx-white-8 mg-b-10">Memory Usage</p>
-                <p class="tx-24 tx-white tx-lato tx-bold mg-b-0 lh-1"><?php echo $memory_usage; ?></p>
-                <span class="tx-11 tx-roboto tx-white-8">0% higher yesterday</span>
+                <p class="tx-24 tx-white tx-lato tx-bold mg-b-0 lh-1"><?php echo $memoryUsage; ?>%</p>
+                <span class="tx-11 tx-roboto tx-white-8"><?php echo $memoryUsage; ?>% higher yesterday</span>
               </div>
             </div>
             <div id="ch1" class="ht-50 tr-y-1"></div>
@@ -169,8 +172,8 @@ $memory_usage = memory_get_usage() - $startMemory . '  Bytes';
               <i class="ion ion-document-text tx-60 lh-0 tx-white op-7"></i>
               <div class="mg-l-20">
                 <p class="tx-10 tx-spacing-1 tx-mont tx-semibold tx-uppercase tx-white-8 mg-b-10">Total Files</p>
-                <p class="tx-24 tx-white tx-lato tx-bold mg-b-0 lh-1">2</p>
-                <span class="tx-11 tx-roboto tx-white-8">0 file yesterday</span>
+                <p class="tx-24 tx-white tx-lato tx-bold mg-b-0 lh-1"><?php echo $totalFiles['total']; ?></p>
+                <span class="tx-11 tx-roboto tx-white-8"><?php echo $totalFiles['total']; ?> file yesterday</span>
               </div>
             </div>
             <div id="ch3" class="ht-50 tr-y-1"></div>
@@ -182,8 +185,8 @@ $memory_usage = memory_get_usage() - $startMemory . '  Bytes';
               <i class="ion ion-monitor tx-60 lh-0 tx-white op-7"></i>
               <div class="mg-l-20">
                 <p class="tx-10 tx-spacing-1 tx-mont tx-semibold tx-uppercase tx-white-8 mg-b-10">CPU Usage</p>
-                <p class="tx-24 tx-white tx-lato tx-bold mg-b-0 lh-1">20%</p>
-                <span class="tx-11 tx-roboto tx-white-8">16% average duration</span>
+                <p class="tx-24 tx-white tx-lato tx-bold mg-b-0 lh-1"><?php echo $cpuUsage; ?>%</p>
+                <span class="tx-11 tx-roboto tx-white-8"><?php echo $cpuUsage; ?>% average duration</span>
               </div>
             </div>
             <div id="ch2" class="ht-50 tr-y-1"></div>
@@ -195,8 +198,8 @@ $memory_usage = memory_get_usage() - $startMemory . '  Bytes';
               <i class="ion ion-ios-box tx-60 lh-0 tx-white op-7"></i>
               <div class="mg-l-20">
                 <p class="tx-10 tx-spacing-1 tx-mont tx-semibold tx-uppercase tx-white-8 mg-b-10">Space Usage</p>
-                <p class="tx-24 tx-white tx-lato tx-bold mg-b-0 lh-1">2 Mb</p>
-                <span class="tx-11 tx-roboto tx-white-8">2 Mb of total files size</span>
+                <p class="tx-24 tx-white tx-lato tx-bold mg-b-0 lh-1"><?php echo formatSizeUnits($filesSize['size']); ?></p>
+                <span class="tx-11 tx-roboto tx-white-8"><?php echo formatSizeUnits($filesSize['size']); ?> of total files size</span>
               </div>
             </div>
             <div id="ch4" class="ht-50 tr-y-1"></div>
@@ -217,16 +220,23 @@ $memory_usage = memory_get_usage() - $startMemory . '  Bytes';
           <div class="modal-dialog">
             <div class="modal-content">
               <div class="modal-header">
-                <h5 class="modal-title" id="exampleModalLabel">Modal title</h5>
+                <h5 class="modal-title" id="exampleModalLabel">Upload a file</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
               </div>
-              <div class="modal-body">
-                ...
-              </div>
-              <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                <button type="button" class="btn btn-primary">Save changes</button>
-              </div>
+              <form action="" method="post" enctype="multipart/form-data">
+                <div class="modal-body">
+                  <div class="">
+                    <div class="custom-file">
+                      <input type="file" id="file" name="file" class="custom-file-input">
+                      <label class="custom-file-label">Select a file</label>
+                    </div>
+                  </div>
+                </div>
+                <div class="modal-footer">
+                  <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                  <button type="submit" name="submit" class="btn btn-primary">Upload</button>
+                </div>
+              </form>
             </div>
           </div>
         </div>
@@ -249,16 +259,38 @@ $memory_usage = memory_get_usage() - $startMemory . '  Bytes';
               $i = 1;
               foreach ($files as $file) : ?>
                 <tr>
-                  <td scope='row'><?php echo $i; ?></td>
-                  <td><?php echo $file; ?></td>
-                  <td><?php echo getFileFormat($file); ?></td>
-                  <td><?php echo formatSizeUnits(ftp_size($ftp, $file)); ?></td>
-                  <td><?php echo date('m/d/Y', ftp_mdtm($ftp, $file)); ?></td>
-                  <td><a href="" class="btn btn-primary btn-sm"><i class="icon ion-ios-download-outline"></i> Download</a></td>
-                  <td><a href="" class="btn btn-danger btn-sm"><i class="icon ion-trash-a"></i> Delete</a></td>
-                  <td><a href="" class="btn btn-secondary btn-sm"><i class="icon ion-share"></i> Share</a></td>
+                  <td><?php echo $i; ?></td>
+                  <td><?php echo $file['nama_file']; ?></td>
+                  <td><?php echo getFileFormat($file['nama_file']); ?></td>
+                  <td><?php echo formatSizeUnits($file['ukuran_file']); ?></td>
+                  <td><?php echo $file['created_at']; ?></td>
+                  <td>
+                    <a href="" class="btn btn-primary btn-with-icon btn-sm">
+                      <div class="ht-32 justify-content-between">
+                        <span class="pd-x-15">Download</span>
+                        <span class="icon wd-40"><i class="fa fa-download"></i></span>
+                      </div>
+                    </a>
+                  </td>
+                  <td>
+                    <a href="" class="btn btn-danger btn-with-icon btn-sm">
+                      <div class="ht-32 justify-content-between">
+                        <span class="pd-x-15">Delete</span>
+                        <span class="icon wd-40"><i class="fa fa-trash"></i></span>
+                      </div>
+                    </a>
+                  </td>
+                  <td>
+                    <a href="" class="btn btn-primary btn-with-icon btn-sm">
+                      <div class="ht-32 justify-content-between">
+                        <span class="pd-x-15">Share</span>
+                        <span class="icon wd-40"><i class="fa fa-share"></i></span>
+                      </div>
+                    </a>
+                  </td>
                 </tr>
-              <?php $i++;
+              <?php
+                $i++;
               endforeach; ?>
             </tbody>
           </table>
