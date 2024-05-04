@@ -84,3 +84,24 @@ function sumSize()
 
     return mysqli_fetch_assoc($result);
 }
+
+function downloadFile($fileName)
+{
+    header('Content-type: ' . mime_content_type("./files/$fileName"));
+    header("Content-Disposition: attachment; filename=./files/$fileName");
+    header("Content-Length: " . filesize("./files/$fileName"));
+
+    echo file_get_contents("./files/$fileName", true);
+}
+
+function deleteFile($fileName, $kdFile)
+{
+    global $conn;
+
+    $query = "DELETE FROM tb_files WHERE kd_file = '$kdFile'";
+    mysqli_query($conn, $query);
+
+    unlink("./files/$fileName");
+
+    return mysqli_affected_rows($conn);
+}

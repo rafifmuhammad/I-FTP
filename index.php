@@ -14,7 +14,6 @@ if (isset($_POST['submit'])) {
     header("Location: index.php");
   }
 }
-
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -160,7 +159,7 @@ if (isset($_POST['submit'])) {
               <div class="mg-l-20">
                 <p class="tx-10 tx-spacing-1 tx-mont tx-semibold tx-uppercase tx-white-8 mg-b-10">Memory Usage</p>
                 <p class="tx-24 tx-white tx-lato tx-bold mg-b-0 lh-1"><?php echo $memoryUsage; ?>%</p>
-                <span class="tx-11 tx-roboto tx-white-8"><?php echo $memoryUsage; ?>% higher yesterday</span>
+                <span class="tx-11 tx-roboto tx-white-8"><?php echo $memoryUsage; ?>% higher than yesterday</span>
               </div>
             </div>
             <div id="ch1" class="ht-50 tr-y-1"></div>
@@ -173,7 +172,7 @@ if (isset($_POST['submit'])) {
               <div class="mg-l-20">
                 <p class="tx-10 tx-spacing-1 tx-mont tx-semibold tx-uppercase tx-white-8 mg-b-10">Total Files</p>
                 <p class="tx-24 tx-white tx-lato tx-bold mg-b-0 lh-1"><?php echo $totalFiles['total']; ?></p>
-                <span class="tx-11 tx-roboto tx-white-8"><?php echo $totalFiles['total']; ?> file yesterday</span>
+                <span class="tx-11 tx-roboto tx-white-8"><?php echo $totalFiles['total']; ?> files yesterday</span>
               </div>
             </div>
             <div id="ch3" class="ht-50 tr-y-1"></div>
@@ -228,7 +227,7 @@ if (isset($_POST['submit'])) {
                   <div class="">
                     <div class="custom-file">
                       <input type="file" id="file" name="file" class="custom-file-input">
-                      <label class="custom-file-label">Select a file</label>
+                      <label class="custom-file-label" for="file">Select a file</label>
                     </div>
                   </div>
                 </div>
@@ -264,30 +263,32 @@ if (isset($_POST['submit'])) {
                   <td><?php echo getFileFormat($file['nama_file']); ?></td>
                   <td><?php echo formatSizeUnits($file['ukuran_file']); ?></td>
                   <td><?php echo $file['created_at']; ?></td>
-                  <td>
-                    <a href="" class="btn btn-primary btn-with-icon btn-sm">
-                      <div class="ht-32 justify-content-between">
-                        <span class="pd-x-15">Download</span>
-                        <span class="icon wd-40"><i class="fa fa-download"></i></span>
-                      </div>
-                    </a>
-                  </td>
-                  <td>
-                    <a href="" class="btn btn-danger btn-with-icon btn-sm">
-                      <div class="ht-32 justify-content-between">
-                        <span class="pd-x-15">Delete</span>
-                        <span class="icon wd-40"><i class="fa fa-trash"></i></span>
-                      </div>
-                    </a>
-                  </td>
-                  <td>
-                    <a href="" class="btn btn-primary btn-with-icon btn-sm">
-                      <div class="ht-32 justify-content-between">
-                        <span class="pd-x-15">Share</span>
-                        <span class="icon wd-40"><i class="fa fa-share"></i></span>
-                      </div>
-                    </a>
-                  </td>
+                  <form action="" method="get">
+                    <td>
+                      <a href="download.php?file_name=<?php echo $file['nama_file']; ?>" class="btn btn-primary btn-with-icon btn-sm">
+                        <div class="ht-32 justify-content-between">
+                          <span class="pd-x-15">Download</span>
+                          <span class="icon wd-40"><i class="fa fa-download"></i></span>
+                        </div>
+                      </a>
+                    </td>
+                    <td>
+                      <a href="delete.php?file_name=<?php echo $file['nama_file']; ?>&kd_file=<?php echo $file['kd_file']; ?>" class="btn btn-danger btn-with-icon btn-sm">
+                        <div class="ht-32 justify-content-between">
+                          <span class="pd-x-15">Delete</span>
+                          <span class="icon wd-40"><i class="fa fa-trash"></i></span>
+                        </div>
+                      </a>
+                    </td>
+                    <td>
+                      <a href="" class="btn btn-primary btn-with-icon btn-sm">
+                        <div class="ht-32 justify-content-between">
+                          <span class="pd-x-15">Share</span>
+                          <span class="icon wd-40"><i class="fa fa-share"></i></span>
+                        </div>
+                      </a>
+                    </td>
+                  </form>
                 </tr>
               <?php
                 $i++;
@@ -357,6 +358,14 @@ if (isset($_POST['submit'])) {
             $('.show-sub + .br-menu-sub').slideDown();
           }
         }
+      });
+
+      $('#file').on("change", function() {
+        console.log("change fired");
+        var i = $(this).prev('label').clone();
+        var file = $('#file')[0].files[0].name;
+        console.log(file);
+        $(this).prev('label').text(file);
       });
     </script>
 </body>

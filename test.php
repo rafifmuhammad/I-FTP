@@ -1,11 +1,24 @@
 <?php
 include 'function.php';
 
-$ftp = ftp_connect('127.0.0.1');
+if (isset($_POST['submit'])) {
+    uploadFile($_FILES);
+}
+?>
+<!DOCTYPE html>
+<html lang="en">
 
-ftp_login($ftp, 'polymorphx', '');
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
 
-// var_dump(ftp_size($ftp, ''));
-$files = ftp_nlist($ftp, '');
+<body>
+    <form action="" method="post" enctype="multipart/form-data">
+        <input type="file" name="file" id="file">
+        <button type="submit" name="submit">Submit</button>
+    </form>
+</body>
 
-echo $files[0];
+</html>
